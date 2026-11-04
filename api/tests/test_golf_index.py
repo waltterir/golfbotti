@@ -1,26 +1,49 @@
+import pytest
+
 from app.golf_index import wind_score, temp_score, rain_score
 
-def test_golf_index_import():
-    assert True
 
-def test_wind_score():
-    assert wind_score(3.5) == 10
-    assert wind_score(6.5) == 8
-    assert wind_score(8.5) == 5
-    assert wind_score(10.5) == 3
-    assert wind_score(11) == 0
+@pytest.mark.parametrize("wind, expected", [
+    (0.0, 10),
+    (2.5, 10),   # raja
+    (2.6, 8),
+    (5.5, 8),    # raja
+    (5.6, 5),
+    (7.5, 5),    # raja
+    (7.6, 3),
+    (8.5, 3),    # raja: viimeinen pelattava
+    (8.6, 0),
+    (15.0, 0),
+])
+def test_wind_score(wind, expected):
+    assert wind_score(wind) == expected
 
-def test_temp_score():
-    assert temp_score(-5) == 0
-    assert temp_score(3.5) == 0
-    assert temp_score(5.5) == 3
-    assert temp_score(11.5) == 6
-    assert temp_score(17.5) == 8
-    assert temp_score(26) == 10
 
-def test_rain_score():
-    assert rain_score(0.0) == 10
-    assert rain_score(0.5) == 10
-    assert rain_score(1) == 3
-    assert rain_score(1.1) == 0
-    assert rain_score(2) == 0
+@pytest.mark.parametrize("temp, expected", [
+    (-5.0, 0),   # pakkanen
+    (9.5, 0),    # raja
+    (9.6, 5),
+    (13.5, 5),   # raja
+    (13.6, 8),
+    (17.5, 8),   # raja
+    (17.6, 10),
+    (23.5, 10),  # raja
+    (23.6, 7),
+    (28.5, 7),   # raja: viimeinen pelattava
+    (28.6, 0),
+    (32.0, 0),   # helle
+])
+def test_temp_score(temp, expected):
+    assert temp_score(temp) == expected
+
+
+@pytest.mark.parametrize("rain, expected", [
+    (0.0, 10),   # pouta
+    (0.1, 10),   # raja
+    (0.2, 5),    # tihku
+    (0.3, 5),    # raja
+    (0.4, 0),
+    (2.0, 0),    # sade
+])
+def test_rain_score(rain, expected):
+    assert rain_score(rain) == expected
