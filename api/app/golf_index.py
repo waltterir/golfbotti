@@ -17,6 +17,12 @@ TEMP_PLAYABLE_MAX = 28.5
 RAIN_DRY_MAX = 0.1
 RAIN_DRIZZLE_MAX = 0.3
 
+# --- Painot (yhteensä 1.0) ---
+# Tuuli ja sade pilaavat kierroksen eniten (kaverien palaute)
+WEIGHT_WIND = 0.4
+WEIGHT_TEMP = 0.2
+WEIGHT_RAIN = 0.4
+
 
 def wind_score(wind: float) -> int:
     if wind <= WIND_PERFECT_MAX:
@@ -53,3 +59,14 @@ def rain_score(rain: float) -> int:
         return 5
     else:
         return 0
+
+def calculate_index(wind: float, temp: float, rain: float) -> float:
+    wind_points = wind_score(wind)
+    temp_points = temp_score(temp)
+    rain_points = rain_score(rain)
+
+    points_list = [wind_points, temp_points, rain_points]
+    if 0 in points_list:
+        return 0.0
+    sum_points = wind_points * WEIGHT_WIND + temp_points * WEIGHT_TEMP + rain_points * WEIGHT_RAIN
+    return sum_points

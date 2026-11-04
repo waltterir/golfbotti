@@ -1,6 +1,6 @@
 import pytest
 
-from app.golf_index import wind_score, temp_score, rain_score
+from app.golf_index import wind_score, temp_score, rain_score, calculate_index
 
 
 @pytest.mark.parametrize("wind, expected", [
@@ -47,3 +47,13 @@ def test_temp_score(temp, expected):
 ])
 def test_rain_score(rain, expected):
     assert rain_score(rain) == expected
+
+
+@pytest.mark.parametrize("wind, temp, rain, expected", [
+    (1.0, 20.0, 0.0, 10), 
+    (12.0, 20.0, 0.0, 0),
+    (4.0, 12.0, 0.2, 6.2),
+    (1.0, 26.0, 0.0, 9.4)
+])
+def test_calculate_index(wind, temp, rain, expected):
+    assert calculate_index(wind, temp, rain) == pytest.approx(expected)
