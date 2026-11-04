@@ -8,6 +8,9 @@ TEMP_LOWMID_MAX = 5.5
 TEMP_MID_MAX = 11.5
 TEMP_HIGHMID_MAX = 17.5
 
+RAIN_LOW_MAX = 0.5
+RAIN_MID_MAX = 1.0
+
 
 def wind_score(wind: float) -> int: 
     if wind <= WIND_LOW_MAX:
@@ -32,4 +35,11 @@ def temp_score(temp: float) -> int:
         return 8
     else: 
         return 10
-    
+
+def rain_score(rain: float) -> int:
+    if rain <= RAIN_LOW_MAX:
+        return 10
+    elif rain <= RAIN_MID_MAX:
+        return 3
+    else: 
+        return 0

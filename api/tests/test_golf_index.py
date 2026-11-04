@@ -1,4 +1,4 @@
-from app.golf_index import wind_score, temp_score
+from app.golf_index import wind_score, temp_score, rain_score
 
 def test_golf_index_import():
     assert True
@@ -17,4 +17,10 @@ def test_temp_score():
     assert temp_score(11.5) == 6
     assert temp_score(17.5) == 8
     assert temp_score(26) == 10
-    
+
+def test_rain_score():
+    assert rain_score(0.0) == 10
+    assert rain_score(0.5) == 10
+    assert rain_score(1) == 3
+    assert rain_score(1.1) == 0
+    assert rain_score(2) == 0
