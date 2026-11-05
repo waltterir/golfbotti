@@ -1,6 +1,6 @@
 import pytest
 
-from app.golf_index import wind_score, temp_score, rain_score, calculate_index
+from app.golf_index import wind_score, temp_score, rain_score, calculate_index, window_index
 
 
 @pytest.mark.parametrize("wind, expected", [
@@ -57,3 +57,17 @@ def test_rain_score(rain, expected):
 ])
 def test_calculate_index(wind, temp, rain, expected):
     assert calculate_index(wind, temp, rain) == pytest.approx(expected)
+
+PERFECT = {"wind": 2.0, "temp": 18.0, "rain": 0.0}
+RAINY = {"wind": 2.0, "temp": 18.0, "rain": 1.0}
+WINDY = {"wind": 9.0, "temp": 18.0, "rain": 0.0}
+COLD = {"wind": 2.0, "temp": 0.0, "rain": 0.0}
+MEDIOCRE = {"wind": 4.0, "temp": 12.0, "rain": 0.2}
+
+def make_hour(hour: int, weather: dict) -> dict:
+    result = {"hour": hour, **weather}
+    return result
+
+def test_window_all_perfect():
+    hours = [make_hour(8, PERFECT), make_hour(9, PERFECT), make_hour(10, PERFECT), make_hour(11, PERFECT)]
+    assert window_index(hours, 8, 12) == 10.0
