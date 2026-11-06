@@ -71,3 +71,19 @@ def make_hour(hour: int, weather: dict) -> dict:
 def test_window_all_perfect():
     hours = [make_hour(8, PERFECT), make_hour(9, PERFECT), make_hour(10, PERFECT), make_hour(11, PERFECT)]
     assert window_index(hours, 8, 12) == 10.0
+
+def test_window_one_rainy_hour():
+    hours = [make_hour(8, PERFECT), make_hour(9, RAINY), make_hour(10, PERFECT), make_hour(11, PERFECT)]
+    assert window_index(hours, 8, 12) == 7.5
+
+def test_window_ignores_hours_outside():
+    hours = [make_hour(7, WINDY), make_hour(8, PERFECT), make_hour(9, PERFECT), make_hour(10, PERFECT), make_hour(11, PERFECT), make_hour(12, WINDY)]
+    assert window_index(hours, 8, 12) == 10
+
+def test_window_empty():
+    hours = [make_hour(14, RAINY), make_hour(15, MEDIOCRE)]
+    assert window_index(hours, 8, 12) == 0
+
+def test_window_mediocre():
+    hours = [make_hour(8, MEDIOCRE), make_hour(9, MEDIOCRE), make_hour(10, PERFECT), make_hour(11, PERFECT)]
+    assert window_index(hours, 8, 12) == pytest.approx(8.1)
