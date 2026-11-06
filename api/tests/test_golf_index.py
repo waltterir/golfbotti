@@ -1,6 +1,6 @@
 import pytest
 
-from app.golf_index import wind_score, temp_score, rain_score, calculate_index, window_index
+from app.golf_index import wind_score, temp_score, rain_score, calculate_index, window_index, best_window
 
 
 @pytest.mark.parametrize("wind, expected", [
@@ -87,3 +87,37 @@ def test_window_empty():
 def test_window_mediocre():
     hours = [make_hour(8, MEDIOCRE), make_hour(9, MEDIOCRE), make_hour(10, PERFECT), make_hour(11, PERFECT)]
     assert window_index(hours, 8, 12) == pytest.approx(8.1)
+
+
+
+def test_best_window_morning():
+    morning = [make_hour(h, PERFECT) for h in range(8, 12)]
+    day = [make_hour(h, MEDIOCRE) for h in range(12, 16)]
+    evening = [make_hour(h, RAINY) for h in range(16, 20)]
+    hours = morning + day + evening
+    result = best_window(hours)
+    assert result["best"] == "morning"
+
+def test_best_window_evening():
+    morning = [make_hour(h, WINDY) for h in range(8, 12)]
+    day = [make_hour(h, MEDIOCRE) for h in range(12, 16)]
+    evening = [make_hour(h, PERFECT) for h in range(16, 20)]
+    hours = morning + day + evening
+    result = best_window(hours)
+    assert result["best"] == "evening"
+
+def test_best_window_returns_all_windows():
+    morning = [make_hour(h, WINDY) for h in range(8, 12)]
+    day = [make_hour(h, MEDIOCRE) for h in range(12, 16)]
+    evening = [make_hour(h, PERFECT) for h in range(16, 20)]
+    hours = morning + day + evening
+    result = best_window(hours)
+    assert result["windows"]["morning"] == pytest.approx(0.0)
+    assert result["windows"]["day"] == pytest.approx(6.2)
+    assert result["windows"]["evening"] == pytest.approx(10.0)
+
+def test_best_window_all_zero():
+    hours = [make_hour(h, RAINY) for h in range(8, 20)]
+    result = best_window(hours)
+    assert result["best"] is None
+    

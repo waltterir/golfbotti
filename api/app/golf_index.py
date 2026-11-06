@@ -13,7 +13,7 @@ TEMP_GOOD_MAX = 17.5
 TEMP_PERFECT_MAX = 23.5
 TEMP_PLAYABLE_MAX = 28.5
 
-# --- Sade (mm/h): korkeintaan tihku ---
+# --- Sade (mm/h): korkeintaan tihku... ---
 RAIN_DRY_MAX = 0.1
 RAIN_DRIZZLE_MAX = 0.3
 
@@ -85,4 +85,16 @@ def window_index(hours: list[dict], start: int, end: int) -> float:
             hour_indexes.append(hour_index)
     if not hour_indexes:
         return 0.0
-    return sum(hour_indexes) / len(hour_indexes)
+    return sum(hour_indexes) / len(hour_indexes) # Keskiarvo lasku
+
+# --- Lasketaan Paras aikaikkuna ---
+def best_window(hours: list[dict]) -> dict:
+    best_window_indexes = {}
+    for time_of_day, (start, end) in TIME_WINDOWS.items():
+        result = window_index(hours, start, end)
+        best_window_indexes[time_of_day] = result
+    best = max(best_window_indexes, key=best_window_indexes.get) # max: hakee jokaisen avaime arvon, vertailu indexien perusteella
+    if best_window_indexes[best] == 0:
+        best = None
+    return {"best": (best), "windows": (best_window_indexes)}
+
