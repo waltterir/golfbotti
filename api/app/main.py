@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from schemas.schemas import GolfIndexRequest, GolfIndexResponse
+from app.schemas.schemas import GolfIndexRequest, GolfIndexResponse
 from app.golf_index import best_window
 
 # --- App ---
