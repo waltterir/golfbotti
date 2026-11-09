@@ -10,6 +10,7 @@ app = FastAPI()
 def get_health():
     return {"status": "ok"}
 
+# --- Post indexi --- 
 @app.post("/golf-index", response_model=GolfIndexResponse)
 def calculate_golfindex(request: GolfIndexRequest):
     hour_list = [r.model_dump() for r in request.hours]
