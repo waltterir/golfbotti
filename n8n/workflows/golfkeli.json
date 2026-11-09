@@ -1,0 +1,277 @@
+{
+  "name": "Golfkeli-botti",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 18
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -592,
+        160
+      ],
+      "id": "33d1c1bf-0cf4-48c2-9bcd-71b3641ffe98",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.xml",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        -16
+      ],
+      "id": "0b1929e2-6f2a-48ce-acff-4983fc971d0c",
+      "name": "XML -> JSON"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst members = data[\"wfs:FeatureCollection\"][\"wfs:member\"];\n\nconst FIELD_NAMES = {\n  \"Temperature\": \"temp\",\n  \"WindSpeedMS\": \"wind\",\n  \"Precipitation1h\": \"rain\",\n};\n\nconst ZONE = \"Europe/Helsinki\";\nconst tomorrow = DateTime.now().setZone(ZONE).plus({ days: 1 }).toISODate();\n\nconst byTime = {};\n\nfor (const m of members) {\n  const el = m[\"BsWfs:BsWfsElement\"];\n  const time = el[\"BsWfs:Time\"];\n  const field = FIELD_NAMES[el[\"BsWfs:ParameterName\"]];\n  const value = parseFloat(el[\"BsWfs:ParameterValue\"]);\n\n  if (!field) continue; \n\n  if (!(time in byTime)) {\n    byTime[time] = { time: time };\n  }\n  byTime[time][field] = value;\n}\n\nconst hours = [];\n\nfor (const h of Object.values(byTime)) {\n  const local = DateTime.fromISO(h.time, { zone: \"utc\" }).setZone(ZONE);\n  if (local.toISODate() !== tomorrow) continue;\n\n  hours.push({\n    hour: local.hour,\n    wind: h.wind,\n    temp: h.temp,\n    rain: h.rain,\n  });\n}\n\nreturn [{ json: { date: tomorrow, hours: hours } }];\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -64,
+        -16
+      ],
+      "id": "d3b53a24-20b2-4db8-88ce-21d3e01d3505",
+      "name": "Muunna tunneiksi"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -592,
+        -16
+      ],
+      "id": "82ab95a4-1c4e-41a6-b28d-20264a3c6c0e",
+      "name": "Testiajo"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://api:8000/golf-index",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        112,
+        -16
+      ],
+      "id": "ee23a46f-fa50-40cd-82bf-423380a34669",
+      "name": "Laske golfindexi (API)"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "4d3208a1-e81b-4852-a9a8-2ae3a54d331a",
+              "leftValue": "={{ $json.best }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        304,
+        -16
+      ],
+      "id": "252ea687-8e1c-46b9-bb5a-7c7833005609",
+      "name": "Onko golfkeli?"
+    },
+    {
+      "parameters": {
+        "authentication": "webhook",
+        "content": "=Huomenna paras golfkeli: {{ { morning: \"aamu\", day: \"päivä\", evening: \"ilta\" }[$json.best] }}, indeksi: {{ $json.windows[$json.best]}} / 10",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        480,
+        -96
+      ],
+      "id": "90580486-e82c-42c1-ba2d-b3443d1542c0",
+      "name": "Discord: golfkeli",
+      "webhookId": "2e974a74-24bb-47f6-8e77-1150c9f25fd6",
+      "credentials": {
+        "discordWebhookApi": {
+          "id": "620fFFz3M2ro7mZZ",
+          "name": "Discord Webhook account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "webhook",
+        "content": "Huomenna ei golfkeliä Porissa",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        480,
+        112
+      ],
+      "id": "708cc1fd-f94a-483e-87bb-f82b9ab2a2b3",
+      "name": "Discord: ei golfkeli",
+      "webhookId": "aa9297dd-fc3e-408d-af45-9aa808e026e0",
+      "credentials": {
+        "discordWebhookApi": {
+          "id": "620fFFz3M2ro7mZZ",
+          "name": "Discord Webhook account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://opendata.fmi.fi/wfs?service=WFS&version=2.0.0&request=getFeature&storedquery_id=fmi::forecast::harmonie::surface::point::simple&place=pori&parameters=Temperature,WindSpeedMS,Precipitation1h",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -400,
+        -16
+      ],
+      "id": "abd48036-894a-4734-93e2-aa5b6cff75a9",
+      "name": "Hae FMI-ennuste"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Hae FMI-ennuste",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "XML -> JSON": {
+      "main": [
+        [
+          {
+            "node": "Muunna tunneiksi",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Muunna tunneiksi": {
+      "main": [
+        [
+          {
+            "node": "Laske golfindexi (API)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Testiajo": {
+      "main": [
+        [
+          {
+            "node": "Hae FMI-ennuste",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Laske golfindexi (API)": {
+      "main": [
+        [
+          {
+            "node": "Onko golfkeli?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Onko golfkeli?": {
+      "main": [
+        [
+          {
+            "node": "Discord: golfkeli",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Discord: ei golfkeli",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hae FMI-ennuste": {
+      "main": [
+        [
+          {
+            "node": "XML -> JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "827f3ec4-13c0-4f20-9526-f4ad93b6e803",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "aab6abfb72b45fa3d82ce4395715efdd45dda404afcd3c3f34d3ce253e1a0fd6"
+  },
+  "nodeGroups": [],
+  "id": "6n0rLEuMEyP4RhWw",
+  "tags": []
+}
